@@ -2,7 +2,6 @@ import User from "../models/user.model.js";
 import bcryptjs from 'bcryptjs';
 import { errorHandler } from "../utils/err.js";
 
-console.log("hmmmm");
 export const signup = async (req, res, next) => {
     const {username, email, password} = req.body;
 
