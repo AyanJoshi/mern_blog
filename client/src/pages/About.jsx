@@ -7,7 +7,7 @@ export default function About() {
     <div className="min-h-screen flex items-center justify-center">
       <div className="max-w-2xl mx-auto p-3 text-center">
         <img
-          src="../../images/bua.jpeg"
+          src="https://i.imgur.com/8UnjnkS.jpeg"
           alt="user"
           className="rounded-full w-50 h-50 object-cover border-8 border-[lightgray]"
         />

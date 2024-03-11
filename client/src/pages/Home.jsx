@@ -22,16 +22,10 @@ export default function Home() {
       <div className="h-96 sm:h-96 xl:h-96 2xl:h-96 lg:h-96">
         {/* max-h-lg min-h-54 h-96 sm:h-64 xl:h-80 2xl:h-96 */}
         <Carousel slideInterval={7000}>
-          <img
-            src="../../images/bBE9dOhf5BnMFU420t3F--1--xg20t_6x.jpg"
-            alt="..."
-          />
-          <img src="../../images/uk.jpg" alt="..." />
-          <img
-            src="../../images/create_an_animated_collage_of_india_s_greatest_poets.jpg"
-            alt="..."
-          />
-          <img src="../../images/pexels-photo-1105389.jpeg" alt="..." />
+          <img src="https://i.imgur.com/Kj1lY2n.jpeg" alt="..." />
+          <img src="https://i.imgur.com/jpmDv3H.jpeg" alt="..." />
+          <img src="https://i.imgur.com/tIiJlrc.png" alt="..." />
+          <img src="https://i.imgur.com/PD5bfgN.png" alt="..." />
         </Carousel>
       </div>
       <div className="flex flex-col gap-6 p-14 px-3 max-w-6xl mx-auto ">
