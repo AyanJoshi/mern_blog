@@ -1,126 +1,143 @@
-import { Avatar, Button, Dropdown, Navbar, TextInput } from 'flowbite-react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { AiOutlineSearch } from 'react-icons/ai';
-import { FaMoon, FaSun } from 'react-icons/fa';
-import { useSelector, useDispatch } from 'react-redux';
-import { toggleTheme } from '../redux/theme/themeSlice';
-import { signoutSuccess } from '../redux/user/userSlice';
+import moment from 'moment';
 import { useEffect, useState } from 'react';
+import { FaThumbsUp } from 'react-icons/fa';
+import { useSelector } from 'react-redux';
+import { Button, Textarea } from 'flowbite-react';
+import { set } from 'mongoose';
 
-export default function Header() {
-  const path = useLocation().pathname;
-  const location = useLocation();
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+export default function Comment({ comment, onLike, onEdit, onDelete }) {
+  const [user, setUser] = useState({});
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState(comment.content);
   const { currentUser } = useSelector((state) => state.user);
-  const { theme } = useSelector((state) => state.theme);
-  const [searchTerm, setSearchTerm] = useState('');
-
   useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const searchTermFromUrl = urlParams.get('searchTerm');
-    if (searchTermFromUrl) {
-      setSearchTerm(searchTermFromUrl);
-    }
-  }, [location.search]);
+    const getUser = async () => {
+      try {
+        const res = await fetch(`/api/user/${comment.userId}`);
+        const data = await res.json();
+        if (res.ok) {
+          setUser(data);
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
+    getUser();
+  }, [comment]);
 
-  const handleSignout = async () => {
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditedContent(comment.content);
+  };
+
+  const handleSave = async () => {
     try {
-      const res = await fetch('/api/user/signout', {
-        method: 'POST',
+      const res = await fetch(`/api/comment/editComment/${comment._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: editedContent,
+        }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        console.log(data.message);
-      } else {
-        dispatch(signoutSuccess());
+      if (res.ok) {
+        setIsEditing(false);
+        onEdit(comment, editedContent);
       }
     } catch (error) {
       console.log(error.message);
     }
   };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const urlParams = new URLSearchParams(location.search);
-    urlParams.set('searchTerm', searchTerm);
-    const searchQuery = urlParams.toString();
-    navigate(`/search?${searchQuery}`);
-  };
-
   return (
-    <Navbar className='border-b-2'>
-      <Link
-        to='/'
-        className='self-center whitespace-nowrap text-sm sm:text-xl font-semibold dark:text-white'
-      >
-        <span className='px-2 py-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg text-white'>
-          Sahand's
-        </span>
-        Blog
-      </Link>
-      <form onSubmit={handleSubmit}>
-        <TextInput
-          type='text'
-          placeholder='Search...'
-          rightIcon={AiOutlineSearch}
-          className='hidden lg:inline'
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+    <div className='flex p-4 border-b dark:border-gray-600 text-sm'>
+      <div className='flex-shrink-0 mr-3'>
+        <img
+          className='w-10 h-10 rounded-full bg-gray-200'
+          src={user.profilePicture}
+          alt={user.username}
         />
-      </form>
-      <Button className='w-12 h-10 lg:hidden' color='gray' pill>
-        <AiOutlineSearch />
-      </Button>
-      <div className='flex gap-2 md:order-2'>
-        <Button
-          className='w-12 h-10 hidden sm:inline'
-          color='gray'
-          pill
-          onClick={() => dispatch(toggleTheme())}
-        >
-          {theme === 'light' ? <FaSun /> : <FaMoon />}
-        </Button>
-        {currentUser ? (
-          <Dropdown
-            arrowIcon={false}
-            inline
-            label={
-              <Avatar alt='user' img={currentUser.profilePicture} rounded />
-            }
-          >
-            <Dropdown.Header>
-              <span className='block text-sm'>@{currentUser.username}</span>
-              <span className='block text-sm font-medium truncate'>
-                {currentUser.email}
-              </span>
-            </Dropdown.Header>
-            <Link to={'/dashboard?tab=profile'}>
-              <Dropdown.Item>Profile</Dropdown.Item>
-            </Link>
-            <Dropdown.Divider />
-            <Dropdown.Item onClick={handleSignout}>Sign out</Dropdown.Item>
-          </Dropdown>
-        ) : (
-          <Link to='/sign-in'>
-            <Button gradientDuoTone='purpleToBlue' outline>
-              Sign In
-            </Button>
-          </Link>
-        )}
-        <Navbar.Toggle />
       </div>
-      <Navbar.Collapse>
-        <Navbar.Link active={path === '/'} as={'div'}>
-          <Link to='/'>Home</Link>
-        </Navbar.Link>
-        <Navbar.Link active={path === '/about'} as={'div'}>
-          <Link to='/about'>About</Link>
-        </Navbar.Link>
-        <Navbar.Link active={path === '/projects'} as={'div'}>
-          <Link to='/projects'>Projects</Link>
-        </Navbar.Link>
-      </Navbar.Collapse>
-    </Navbar>
+      <div className='flex-1'>
+        <div className='flex items-center mb-1'>
+          <span className='font-bold mr-1 text-xs truncate'>
+            {user ? `@${user.username}` : 'anonymous user'}
+          </span>
+          <span className='text-gray-500 text-xs'>
+            {moment(comment.createdAt).fromNow()}
+          </span>
+        </div>
+        {isEditing ? (
+          <>
+            <Textarea
+              className='mb-2'
+              value={editedContent}
+              onChange={(e) => setEditedContent(e.target.value)}
+            />
+            <div className='flex justify-end gap-2 text-xs'>
+              <Button
+                type='button'
+                size='sm'
+                gradientDuoTone='purpleToBlue'
+                onClick={handleSave}
+              >
+                Save
+              </Button>
+              <Button
+                type='button'
+                size='sm'
+                gradientDuoTone='purpleToBlue'
+                outline
+                onClick={() => setIsEditing(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className='text-gray-500 pb-2'>{comment.content}</p>
+            <div className='flex items-center pt-2 text-xs border-t dark:border-gray-700 max-w-fit gap-2'>
+              <button
+                type='button'
+                onClick={() => onLike(comment._id)}
+                className={`text-gray-400 hover:text-blue-500 ${
+                  currentUser &&
+                  comment.likes.includes(currentUser._id) &&
+                  '!text-blue-500'
+                }`}
+              >
+                <FaThumbsUp className='text-sm' />
+              </button>
+              <p className='text-gray-400'>
+                {comment.numberOfLikes > 0 &&
+                  comment.numberOfLikes +
+                    ' ' +
+                    (comment.numberOfLikes === 1 ? 'like' : 'likes')}
+              </p>
+              {currentUser &&
+                (currentUser._id === comment.userId || currentUser.isAdmin) && (
+                  <>
+                    <button
+                      type='button'
+                      onClick={handleEdit}
+                      className='text-gray-400 hover:text-blue-500'
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type='button'
+                      onClick={() => onDelete(comment._id)}
+                      className='text-gray-400 hover:text-red-500'
+                    >
+                      Delete
+                    </button>
+                  </>
+                )}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
