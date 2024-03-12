@@ -88,6 +88,8 @@ export const updatepost = async (req, res, next) => {
     return next(errorHandler(403, 'You are not allowed to update this post'));
   }
   try {
+    // console.log("hello update post")
+    // console.log(req.params);
     const updatedPost = await Post.findByIdAndUpdate(
       req.params.postId,
       {
